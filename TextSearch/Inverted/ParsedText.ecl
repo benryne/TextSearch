@@ -82,7 +82,7 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
         MATCHED(PoundCode)                       => Types.TermType.TextStr,
         Types.TermType.Unknown);
     SELF.typData   := MAP(
-        MATCHED(WhiteSpace)                      => Types.DataType.RawData,
+        MATCHED(WhiteSpace)                      => Types.DataType.PCDATA,
         MATCHED(SymbolChar)                      => Types.DataType.RawData,
         MATCHED(Noise)                           => Types.DataType.RawData,
         MATCHED(WordAlphaNum)                    => Types.DataType.RawData,
