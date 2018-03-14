@@ -1,4 +1,4 @@
-EXPORT Pattern_Definitions := MACRO
+﻿EXPORT Pattern_Definitions := MACRO
   // Pure Whitespace
   PATTERN LowControl    := PATTERN(U'[\u0001-\u0008\u000B\u000C\u000E\u000F]');
   PATTERN HighControl    := PATTERN(U'[\u007F-\u009F]');
@@ -112,7 +112,8 @@ EXPORT Pattern_Definitions := MACRO
   PATTERN WordMixedCase  := Digit* LowerCase LowerNumeric* UpperCase Alphanumeric*
                         OR Digit* UpperCase UpperNumeric* LowerCase AlphaNumeric*;
   PATTERN WordNoLetters  := Digit+;
-  PATTERN WordAlphaNum  := Alphanumeric+;
+  //PATTERN WordAlphaNum  := Alphanumeric+;
+	PATTERN WordAlphaNum  := WordNoLetters OR WordMixedCase OR WordAllLower OR WordAllUpper OR WordTitleCase;
   // Special tag strings
   PATTERN PoundCode      := U'#' Alphanumeric+ REPEAT(U'-' Alphanumeric*) U'#';
   PATTERN AlphanumWild  := Alphanumeric OR U'*' OR REPEAT(U'?', 1);

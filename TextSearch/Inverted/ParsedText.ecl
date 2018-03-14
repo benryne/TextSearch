@@ -1,4 +1,4 @@
-// Parse contents of the document
+﻿// Parse contents of the document
 IMPORT TextSearch;
 IMPORT TextSearch.Common;
 IMPORT TextSearch.Inverted.Layouts;
@@ -40,7 +40,8 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
 
   RULE myRule           := XMLDecl OR XMLComment OR XMLElement OR XMLEmpty OR
                            AttributeExpr OR EndElement OR TagEndSeq OR
-                           WordAlphaNum OR WhiteSpace OR PoundCode OR
+                           WordAlphaNum OR WhiteSpace OR PoundCode OR WordNoLetters OR WordAllLower OR
+													 WordAllUpper OR WordTitleCase OR WordMixedCase OR
                            SymbolChar OR Noise OR AnyChar OR AnyPair;
 
   RawPosting parseString(Document doc) := TRANSFORM
@@ -113,7 +114,14 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
     SELF.preorder  := 0;
     SELF.parentOrd := 0;
     SELF.parentName:= U'';
-    SELF.lp        := Types.LetterPattern.Unknown;
+    //SELF.lp        := Types.LetterPattern.UpperCase;
+		Self.lp := MAP(
+			MATCHED(WordAlphaNum/WordNoLetters) => 1,
+			MATCHED(WordAlphaNum/WordTitleCase) => 2,
+			MATCHED(WordAlphaNum/WordAllUpper) => 3,
+			MATCHED(WordAlphaNum/WordAllLower) => 4,
+			MATCHED(WordAlphaNum/WordMixedCase) => 5,
+			0);
     SELF.term      := MATCHUNICODE(MyRule);
   END;
   p0 := PARSE(docsInput, content, myRule, parseString(LEFT), MAX, MANY, NOT MATCHED);
