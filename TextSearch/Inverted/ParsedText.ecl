@@ -1,4 +1,4 @@
-// Parse contents of the document
+﻿// Parse contents of the document
 IMPORT TextSearch;
 IMPORT TextSearch.Common;
 IMPORT TextSearch.Inverted.Layouts;
@@ -39,9 +39,10 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
   PATTERN XMLEmpty      := U'<' XMLName BEFORE EmptyEnd;
 
   RULE myRule           := XMLDecl OR XMLComment OR XMLElement OR XMLEmpty OR
-                           AttributeExpr OR EndElement OR TagEndSeq OR
-                           WordAlphaNum OR WhiteSpace OR PoundCode OR
-                           SymbolChar OR Noise OR AnyChar OR AnyPair;
+													 AttributeExpr OR EndElement OR TagEndSeq OR
+                           WordAlphaNum OR WhiteSpace OR WordCase OR PoundCode OR WordNoLetters OR 
+													 WordAllLower OR WordAllUpper OR WordTitleCase OR 
+													 WordMixedCase OR  SymbolChar OR Noise OR AnyChar OR AnyPair;
 
   RawPosting parseString(Document doc) := TRANSFORM
     SELF.id        := doc.id;;
@@ -82,7 +83,7 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
         MATCHED(PoundCode)                       => Types.TermType.TextStr,
         Types.TermType.Unknown);
     SELF.typData   := MAP(
-        MATCHED(WhiteSpace)                      => Types.DataType.PCDATA,
+        MATCHED(WhiteSpace)                      => Types.DataType.RawData,
         MATCHED(SymbolChar)                      => Types.DataType.RawData,
         MATCHED(Noise)                           => Types.DataType.RawData,
         MATCHED(WordAlphaNum)                    => Types.DataType.RawData,
@@ -113,10 +114,16 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
     SELF.preorder  := 0;
     SELF.parentOrd := 0;
     SELF.parentName:= U'';
-    SELF.lp        := Types.LetterPattern.Unknown;
+		Self.lp := MAP(
+			MATCHED(WordNoLetters) => Types.LetterPattern.NoLetters,
+			MATCHED(WordAlphaNum/WordAllUpper) => Types.LetterPattern.UpperCase,
+			MATCHED(WordAlphaNum/WordAllLower) => Types.LetterPattern.LowerCase,
+			MATCHED(WordTitleCase) => Types.LetterPattern.TitleCase,
+			MATCHED(WordMixedCase) => Types.LetterPattern.MixedCase,
+			Types.LetterPattern.Unknown);
     SELF.term      := MATCHUNICODE(MyRule);
   END;
   p0 := PARSE(docsInput, content, myRule, parseString(LEFT), MAX, MANY, NOT MATCHED);
-  p1 := ASSERT(p0, typTerm<>Types.TermType.Unknown, Constants.OtherCharsInText_Msg);
-  RETURN p1(typTerm <> Types.TermType.WhiteSpace);
+  //p1 := ASSERT(p0, typTerm<>Types.TermType.Unknown, Constants.OtherCharsInText_Msg);
+  RETURN p0(typTerm <> Types.TermType.WhiteSpace);
 END;

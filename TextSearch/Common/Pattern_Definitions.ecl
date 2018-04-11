@@ -1,4 +1,4 @@
-EXPORT Pattern_Definitions := MACRO
+﻿EXPORT Pattern_Definitions := MACRO
   // Pure Whitespace
   PATTERN LowControl    := PATTERN(U'[\u0001-\u0008\u000B\u000C\u000E\u000F]');
   PATTERN HighControl    := PATTERN(U'[\u007F-\u009F]');
@@ -100,19 +100,22 @@ EXPORT Pattern_Definitions := MACRO
   // Composite patterns
   // Word strings
   PATTERN Letter        := PATTERN(U'[[:alpha:]]');
+  //PATTERN NOLetter        := PATTERN(U'[^[:alpha:]\' \']');
   PATTERN LowerCase      := PATTERN(U'[[:lower:]]');
   PATTERN UpperCase      := PATTERN(U'[[:upper:]]');
+	PATTERN NOLetter        := PATTERN(U'[^[:lower:]^[:upper:]^\' \']');
   PATTERN Digit          := PATTERN(U'[[:digit:]]');
   PATTERN Alphanumeric  := Letter OR Digit;
-  PATTERN  LowerNumeric  := LowerCase OR Digit;
+  PATTERN LowerNumeric  := LowerCase OR Digit;
   PATTERN UpperNumeric  := UpperCase OR Digit;
   PATTERN WordAllLower  := Digit* LowerCase LowerNumeric*;
   PATTERN WordAllUpper  := Digit* UpperCase UpperNumeric*;
   PATTERN WordTitleCase  := UpperCase lowerNumeric*;
   PATTERN WordMixedCase  := Digit* LowerCase LowerNumeric* UpperCase Alphanumeric*
                         OR Digit* UpperCase UpperNumeric* LowerCase AlphaNumeric*;
-  PATTERN WordNoLetters  := Digit+;
-  PATTERN WordAlphaNum  := Alphanumeric+;
+  PATTERN WordNoLetters  := NOLetter+;
+	PATTERN WordAlphaNum  := WordAllLower OR WordAllUpper OR WordTitleCase OR WordMixedCase;
+	PATTERN WordCase     := WordAllLower OR WordAllUpper OR WordTitleCase OR WordMixedCase;
   // Special tag strings
   PATTERN PoundCode      := U'#' Alphanumeric+ REPEAT(U'-' Alphanumeric*) U'#';
   PATTERN AlphanumWild  := Alphanumeric OR U'*' OR REPEAT(U'?', 1);
