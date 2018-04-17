@@ -1,26 +1,26 @@
-//Convert raw content into posting records
+﻿//Convert raw content into posting records
 IMPORT TextSearch.Common;
 IMPORT TextSearch.Common.Types;
 IMPORT TextSearch.Inverted;
 IMPORT TextSearch.Inverted.Layouts;
 IMPORT Std;
-// Alias entries
+//Alias entries
 FileName_Info := Common.FileName_Info;
 Document := Layouts.Document;
 Posting  := Layouts.RawPosting;
 TermType := Types.TermType;
 DataType := Types.DataType;
 
-// helper functions
+//helper functions
 isKeyWord(TermType tt) := tt IN Types.KeywordTTypes;
 isElement(DataType dt) := dt IN Types.ElementDTypes;
 
 EXPORT GROUPED DATASET(Posting) RawPostings(DATASET(Document) docIn) := FUNCTION
-  // Parse the content of the document
+  //Parse the content of the document
   p1 := Inverted.ParsedText(docIn);
 
-  // Track state, assign keyword numbers to posting records and fix types
-  // This version ignores tag names and simply acts on open and close.  Stack is
+  //Track state, assign keyword numbers to posting records and fix types
+  //This version ignores tag names and simply acts on open and close.  Stack is
   //reset at document bounds.
 
   TagData := RECORD
@@ -107,13 +107,14 @@ EXPORT GROUPED DATASET(Posting) RawPostings(DATASET(Document) docIn) := FUNCTION
     incrOrdinal       := IF(isElement(posting.typData), 1, 0);
     closeElement      := posting.typData=DataType.EndElement;
     SELF.kwp          := IF(docChanged, 1, st.nextKWP);
-    SELF.depth        := IF(closeElement, st.currDepth-1, st.currDepth);
+    SELF.depth        := IF(closeElement, st.currDepth - 1, st.currDepth);
     SELF.parentOrd    := toppreord;
     SELF.preorder     := IF(docChanged, 0, st.lastOrd) + incrOrdinal;
     SELF.pathString   := st.pathString;
     SELF.parentName   := topParentName;
     SELF.lenText      := IF(closeElement, st.lenText, posting.lenText);
     SELF.keywords     := IF(closeElement, st.keywords, posting.keywords);
+		SELF.typData      := IF((SELF.depth > 1), Types.DataType.PCDATA, Types.DataType.RawData);
     SELF              := posting;
   END;
   initalV := ROW(initState());

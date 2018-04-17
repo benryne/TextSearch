@@ -1,11 +1,12 @@
 ﻿EXPORT Pattern_Definitions := MACRO
-  // Pure Whitespace
+  //Pure Whitespace
   PATTERN LowControl    := PATTERN(U'[\u0001-\u0008\u000B\u000C\u000E\u000F]');
   PATTERN HighControl    := PATTERN(U'[\u007F-\u009F]');
   PATTERN Space          := U' ' OR LowControl OR HighControl;
   PATTERN Spaces        := Space+;
   PATTERN WhiteSpace    := Spaces;
-  // Symbols that are keywords
+	
+  //Symbols that are keywords
   PATTERN Ampersand      := U'&';
   PATTERN Apostrophe    := U'\'';
   PATTERN Section        := U'\u00A7';
@@ -40,7 +41,8 @@
   PATTERN SymbolChar    := SymbolNoSpec OR LeftParen OR RightParen OR Equal;
   PATTERN Symbol4Search  := SymbolNoSpec OR SearchLeftP OR SearchRightP
                           OR SearchEqual;
-  // Symbols that are noise
+													
+  //Symbols that are noise
   PATTERN Comma          := U',';
   PATTERN Period        := U'.';
   PATTERN Hyphen        := U'-';
@@ -85,7 +87,8 @@
   PATTERN SearchBSlash  := '\\\\';  // sequence of 2 back-slash characters
   PATTERN Noise          := NoiseNoSpecial OR Quote OR BSlash;
   PATTERN Noise4Search  := NoiseNoSpecial OR SearchQuote OR SearchBSlash;
-  // Catch all
+	
+  //Catch all
   PATTERN AnyChar        := PATTERN(U'[\u0001-\uD7FF\uE000-\uFFFF]') PENALTY(10);
   PATTERN HighSurrogate  := PATTERN(U'[\uD800-\uDBFF]');
   PATTERN LowSurrogate  := PATTERN(U'[\uDC00-\uDFFF]');
@@ -93,18 +96,19 @@
   PATTERN AnyNoQuote    := PATTERN(U'[\u0001-\u0021\u0023-\uFFFF]');
   PATTERN AnyNoApos     := PATTERN(U'[\u0001-\u0026\u0028-\uFFFF]');
   PATTERN AnyNoHyphen    := PATTERN(U'[\u0001-\u002C\u002E-\uFFFF]');
-  // Singles
+	
+  //Singles
   PATTERN Single         := Noise | SymbolChar | AnyPair | AnyChar;
   PATTERN Single4Search  := Noise4Search | Symbol4Search | AnyPair | AnyChar;
 
-  // Composite patterns
-  // Word strings
+  //Composite patterns
+  //Word strings
   PATTERN Letter        := PATTERN(U'[[:alpha:]]');
   PATTERN LowerCase      := PATTERN(U'[[:lower:]]');
   PATTERN UpperCase      := PATTERN(U'[[:upper:]]');
   PATTERN Digit          := PATTERN(U'[[:digit:]]');
   PATTERN Alphanumeric  := Letter OR Digit;
-  PATTERN  LowerNumeric  := LowerCase OR Digit;
+  PATTERN LowerNumeric  := LowerCase OR Digit;
   PATTERN UpperNumeric  := UpperCase OR Digit;
   PATTERN WordAllLower  := Digit* LowerCase LowerNumeric*;
   PATTERN WordAllUpper  := Digit* UpperCase UpperNumeric*;
@@ -112,10 +116,12 @@
   PATTERN WordMixedCase  := Digit* LowerCase LowerNumeric* UpperCase Alphanumeric*
                         OR Digit* UpperCase UpperNumeric* LowerCase AlphaNumeric*;
   PATTERN WordNoLetters  := Digit+;
-  //PATTERN WordAlphaNum  := Alphanumeric+;
-	PATTERN WordAlphaNum  := WordNoLetters OR WordMixedCase OR WordAllLower OR WordAllUpper OR WordTitleCase;
-  // Special tag strings
+	PATTERN WordAlphaNum  :=  WordAllUpper OR WordAllLower OR WordTitleCase OR WordMixedCase;
+	PATTERN WordAlphaNum2 := Alphanumeric+;
+	
+  //Special tag strings
   PATTERN PoundCode      := U'#' Alphanumeric+ REPEAT(U'-' Alphanumeric*) U'#';
   PATTERN AlphanumWild  := Alphanumeric OR U'*' OR REPEAT(U'?', 1);
   PATTERN PoundCodeWild := U'#' AlphanumWild+ REPEAT(U'-' AlphanumWild*) U'#';
+	
 ENDMACRO;

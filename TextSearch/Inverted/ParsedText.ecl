@@ -39,10 +39,10 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
   PATTERN XMLEmpty      := U'<' XMLName BEFORE EmptyEnd;
 
   RULE myRule           := XMLDecl OR XMLComment OR XMLElement OR XMLEmpty OR
-                           AttributeExpr OR EndElement OR TagEndSeq OR
-                           WordAlphaNum OR WhiteSpace OR PoundCode OR WordNoLetters OR WordAllLower OR
-													 WordAllUpper OR WordTitleCase OR WordMixedCase OR
-                           SymbolChar OR Noise OR AnyChar OR AnyPair;
+													 AttributeExpr OR EndElement OR TagEndSeq OR
+                           WordAlphaNum OR WhiteSpace OR PoundCode OR WordNoLetters OR 
+													 WordAllLower OR WordAllUpper OR WordTitleCase OR
+													 WordMixedCase OR  SymbolChar OR Noise OR AnyChar OR AnyPair OR WordAlphaNum2;
 
   RawPosting parseString(Document doc) := TRANSFORM
     SELF.id        := doc.id;;
@@ -51,6 +51,7 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
     SELF.stop      := MATCHPOSITION(MyRule) + MATCHLENGTH(MyRule) - 1;
     SELF.depth     := 0;
     SELF.pathString:= U'';
+		
     SELF.len       := MATCHLENGTH(MyRule);
     SELF.lenText   := MAP(
         MATCHED(WhiteSpace)                      => MATCHLENGTH(MyRule),
@@ -70,7 +71,7 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
         MATCHED(WhiteSpace)                      => Types.TermType.WhiteSpace,
         MATCHED(SymbolChar)                      => Types.TermType.SymbolChar,
         MATCHED(Noise)                           => Types.TermType.NoiseChar,
-        MATCHED(WordAlphaNum)                    => Types.TermType.TextStr,
+        MATCHED(WordAlphaNum2)                    => Types.TermType.TextStr,
         MATCHED(AnyChar)                         => Types.TermType.SymbolChar,
         MATCHED(AnyPair)                         => Types.TermType.SymbolChar,
         MATCHED(XMLDecl)                         => Types.TermType.Tag,
@@ -82,6 +83,7 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
         MATCHED(TagEndSeq)                       => Types.TermType.Tag,
         MATCHED(PoundCode)                       => Types.TermType.TextStr,
         Types.TermType.Unknown);
+		//It is PCData if the stack depth is greater than 1 and the parentOrd is > 2
     SELF.typData   := MAP(
         MATCHED(WhiteSpace)                      => Types.DataType.RawData,
         MATCHED(SymbolChar)                      => Types.DataType.RawData,
@@ -114,17 +116,17 @@ EXPORT DATASET(RawPosting) ParsedText(DATASET(Document) docsInput) := FUNCTION
     SELF.preorder  := 0;
     SELF.parentOrd := 0;
     SELF.parentName:= U'';
-    //SELF.lp        := Types.LetterPattern.UpperCase;
 		Self.lp := MAP(
-			MATCHED(WordAlphaNum/WordNoLetters) => 1,
-			MATCHED(WordAlphaNum/WordTitleCase) => 2,
-			MATCHED(WordAlphaNum/WordAllUpper) => 3,
-			MATCHED(WordAlphaNum/WordAllLower) => 4,
-			MATCHED(WordAlphaNum/WordMixedCase) => 5,
-			0);
+			MATCHED(WordAlphaNum/WordAllUpper) => Types.LetterPattern.UpperCase,
+			MATCHED(WordAlphaNum/WordAllLower) => Types.LetterPattern.LowerCase,
+			MATCHED(WordTitleCase) => Types.LetterPattern.TitleCase,
+			MATCHED(WordMixedCase) => Types.LetterPattern.MixedCase,
+			Types.LetterPattern.NoLetters);
     SELF.term      := MATCHUNICODE(MyRule);
   END;
   p0 := PARSE(docsInput, content, myRule, parseString(LEFT), MAX, MANY, NOT MATCHED);
-  p1 := ASSERT(p0, typTerm<>Types.TermType.Unknown, Constants.OtherCharsInText_Msg);
-  RETURN p1(typTerm <> Types.TermType.WhiteSpace);
+	//p1 returns and shows the errors, which makes the runtime slow, so it is commented out for now.
+  //p1 := ASSERT(p0, typTerm<>Types.TermType.Unknown, Constants.OtherCharsInText_Msg);
+	//RETURN p1(typTerm <> Types.TermType.WhiteSpace);
+  RETURN p0(typTerm <> Types.TermType.WhiteSpace);
 END;

@@ -1,5 +1,4 @@
-﻿// Types for search system
-
+﻿//Types for search system
 EXPORT Types := MODULE
   EXPORT DocNo            := UNSIGNED4;
   EXPORT Position         := UNSIGNED4;
